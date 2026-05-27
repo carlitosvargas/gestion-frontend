@@ -206,18 +206,19 @@ export const DashboardLayout = ({
                 {usuario.nombre} {usuario.apellido}
               </p>
             </div>
+            <button
+              onClick={() => {
+                logout();
+                navigate('/login');
+              }}
+              style={logoutBtnStyle}
+            >
+              <LogOut size={20} />
+              <span>Cerrar Sesión</span>
+            </button>
           </div>
 
-          <button
-            onClick={() => {
-              logout();
-              navigate('/login');
-            }}
-            style={logoutBtnStyle}
-          >
-            <LogOut size={20} />
-            <span>Cerrar Sesión</span>
-          </button>
+
         </div>
       </aside>
 
