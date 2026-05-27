@@ -11,6 +11,7 @@ const AdminPanel = ({ usuario, logout, navigate }) => {
   const [mostrarModalAsignar, setMostrarModalAsignar] = useState(false);
   const [empresaSeleccionada, setEmpresaSeleccionada] = useState(null);
   const [usuarioSeleccionado, setUsuarioSeleccionado] = useState('');
+  const [todosUsuarios, setTodosUsuarios] = useState([]);
   const [nuevaEmpresa, setNuevaEmpresa] = useState({ nombre: '', direccion: '', telefono: '', dias: '', horarios: '' });
 
   useEffect(() => {
@@ -21,8 +22,10 @@ const AdminPanel = ({ usuario, logout, navigate }) => {
     try {
       const dataEmpresas = await adminService.obtenerEmpresas();
       setEmpresas(dataEmpresas);
-      const dataUsuarios = await adminService.obtenerUsuariosSinEmpresa();
-      setUsuariosSinEmpresa(dataUsuarios);
+      const dataUsuariosSinEmpresa = await adminService.obtenerUsuariosSinEmpresa();
+      setUsuariosSinEmpresa(dataUsuariosSinEmpresa);
+      const dataTodosUsuarios = await adminService.obtenerTodosUsuarios();
+      setTodosUsuarios(dataTodosUsuarios);
     } catch (err) { console.error(err); }
   };
 
@@ -81,6 +84,23 @@ const AdminPanel = ({ usuario, logout, navigate }) => {
     }
   };
 
+  const handleEliminarUsuario = async (id) => {
+    const result = await alerts.confirm(
+      '¿Eliminar Usuario?',
+      'Esta acción eliminará permanentemente la cuenta de este usuario.'
+    );
+
+    if (result.isConfirmed) {
+      try {
+        await adminService.eliminarUsuario(id);
+        alerts.toast('Usuario eliminado', 'success');
+        cargarDatos();
+      } catch (err) {
+        alerts.error('Error', err.response?.data?.mensaje || 'No se pudo eliminar el usuario');
+      }
+    }
+  };
+
   const sidebarItems = (
     <>
       <NavItem active={true} icon={<LayoutDashboard size={20} />} label="Empresas" />
@@ -120,6 +140,36 @@ const AdminPanel = ({ usuario, logout, navigate }) => {
               >
                 <Trash2 size={16} />
               </button>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <h2 className="heading-gold" style={{ marginTop: '4rem', marginBottom: '2rem', fontSize: '1.5rem' }}>Gestión de Usuarios</h2>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '2rem' }}>
+        {todosUsuarios.map(u => (
+          <div key={u.id} className="glass-card" style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+              <div>
+                <h3 style={{ color: 'white', margin: 0 }}>{u.nombre} {u.apellido}</h3>
+                <span style={{ fontSize: '0.8rem', color: 'var(--primary)' }}>{u.rol === 'SUPER_ADMIN' ? 'Administrador Global' : 'Dueño de Empresa'}</span>
+              </div>
+              <span style={{ fontSize: '0.7rem', background: 'var(--glass)', padding: '2px 8px', borderRadius: '4px' }}>ID: {u.id}</span>
+            </div>
+            
+            <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', margin: 0 }}>✉️ {u.email}</p>
+            {u.empresaId && <p style={{ color: '#2ecc71', fontSize: '0.8rem', margin: 0 }}>🏢 Asignada Empresa #{u.empresaId}</p>}
+            {!u.empresaId && u.rol !== 'SUPER_ADMIN' && <p style={{ color: '#ffb142', fontSize: '0.8rem', margin: 0 }}>⚠️ Sin empresa asignada</p>}
+            
+            <div style={{ marginTop: 'auto', paddingTop: '1rem' }}>
+              {u.rol !== 'SUPER_ADMIN' && (
+                <button
+                  onClick={() => handleEliminarUsuario(u.id)}
+                  style={{ width: '100%', padding: '0.6rem', background: 'rgba(255, 77, 77, 0.1)', border: '1px solid rgba(255, 77, 77, 0.3)', borderRadius: '8px', color: '#ff4d4d', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}
+                >
+                  <Trash2 size={16} /> Eliminar Usuario
+                </button>
+              )}
             </div>
           </div>
         ))}
