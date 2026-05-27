@@ -226,7 +226,7 @@ export const DashboardLayout = ({
       <main
         style={{
           flex: 1,
-          padding: '3rem',
+          padding: window.innerWidth < 768 ? '1rem' : '3rem',
           overflowY: 'auto',
           width: '100%',
 
@@ -235,7 +235,7 @@ export const DashboardLayout = ({
           // cuando el menú se abre el contenido se corre
           // y NO queda tapado
           // =================================================
-          marginLeft: menuOpen ? '280px' : '0',
+          marginLeft: window.innerWidth > 768 && menuOpen ? '280px' : '0',
 
           transition: 'margin-left 0.3s ease'
         }}
