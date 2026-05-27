@@ -94,7 +94,8 @@ export const DashboardLayout = ({
 
           // <-- MODIFICACIÓN: se mueve suavemente
           left: menuOpen ? '0' : '-280px',
-
+          overflowY: 'auto',
+          WebkitOverflowScrolling: 'touch',
           height: '100vh',
           transition: 'left 0.3s ease',
           zIndex: 1500
