@@ -5,6 +5,7 @@ import { LayoutDashboard, Users, Building2, Trash2 } from 'lucide-react';
 import alerts from '../../utils/alerts';
 
 const AdminPanel = ({ usuario, logout, navigate }) => {
+  const [tabActiva, setTabActiva] = useState('empresas');
   const [empresas, setEmpresas] = useState([]);
   const [usuariosSinEmpresa, setUsuariosSinEmpresa] = useState([]);
   const [mostrarModalEmpresa, setMostrarModalEmpresa] = useState(false);
@@ -103,8 +104,19 @@ const AdminPanel = ({ usuario, logout, navigate }) => {
 
   const sidebarItems = (
     <>
-      <NavItem active={true} icon={<LayoutDashboard size={20} />} label="Empresas" />
       <div style={{ padding: '0.8rem', color: 'var(--text-muted)', fontSize: '0.8rem', marginTop: '1rem' }}>SISTEMA GLOBAL</div>
+      <NavItem 
+        active={tabActiva === 'empresas'} 
+        onClick={() => setTabActiva('empresas')} 
+        icon={<Building2 size={20} />} 
+        label="Sucursales" 
+      />
+      <NavItem 
+        active={tabActiva === 'usuarios'} 
+        onClick={() => setTabActiva('usuarios')} 
+        icon={<Users size={20} />} 
+        label="Usuarios" 
+      />
     </>
   );
 
@@ -113,67 +125,70 @@ const AdminPanel = ({ usuario, logout, navigate }) => {
       usuario={usuario} logout={logout} navigate={navigate}
       sidebarItems={sidebarItems}
       titulo="Control General"
-      subtitulo="Administración de Sucursales"
-      accionesExtra={<button onClick={() => setMostrarModalEmpresa(true)} className="btn-primary">Nueva Sucursal</button>}
+      subtitulo={tabActiva === 'empresas' ? "Administración de Sucursales" : "Gestión de Usuarios"}
+      accionesExtra={tabActiva === 'empresas' && <button onClick={() => setMostrarModalEmpresa(true)} className="btn-primary">Nueva Sucursal</button>}
     >
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '2rem' }}>
-        {empresas.map(empresa => (
-          <div key={empresa.id} className="glass-card" style={{ padding: '1.5rem' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-              <h3 style={{ color: 'var(--primary)' }}>{empresa.nombre}</h3>
-              <span style={{ fontSize: '0.7rem', background: 'var(--glass)', padding: '2px 8px', borderRadius: '4px' }}>Nº Empresa: {empresa.id}</span>
-            </div>
-            <p style={{ color: 'var(--text-muted)', marginTop: '0.5rem' }}>📍 {empresa.direccion || 'Sin dirección'}</p>
-            {empresa.dias && <p style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>📅 {empresa.dias}</p>}
-            {empresa.horarios && <p style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>🕒 {empresa.horarios}</p>}
-            <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1.5rem' }}>
-              <button
-                onClick={() => { setEmpresaSeleccionada(empresa); setMostrarModalAsignar(true); }}
-                style={{ flex: 1, padding: '0.6rem', background: 'var(--primary)', border: 'none', borderRadius: '8px', color: 'black', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}
-              >
-                <Users size={16} /> Asignar Dueño
-              </button>
-              <button
-                onClick={() => handleEliminarEmpresa(empresa.id)}
-                style={{ padding: '0.6rem', background: 'rgba(255, 77, 77, 0.1)', border: '1px solid rgba(255, 77, 77, 0.3)', borderRadius: '8px', color: '#ff4d4d', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                title="Eliminar Sucursal"
-              >
-                <Trash2 size={16} />
-              </button>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      <h2 className="heading-gold" style={{ marginTop: '4rem', marginBottom: '2rem', fontSize: '1.5rem' }}>Gestión de Usuarios</h2>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '2rem' }}>
-        {todosUsuarios.map(u => (
-          <div key={u.id} className="glass-card" style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-              <div>
-                <h3 style={{ color: 'white', margin: 0 }}>{u.nombre} {u.apellido}</h3>
-                <span style={{ fontSize: '0.8rem', color: 'var(--primary)' }}>{u.rol === 'SUPER_ADMIN' ? 'Administrador Global' : 'Dueño de Empresa'}</span>
+      {tabActiva === 'empresas' && (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '2rem' }}>
+          {empresas.map(empresa => (
+            <div key={empresa.id} className="glass-card" style={{ padding: '1.5rem' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <h3 style={{ color: 'var(--primary)' }}>{empresa.nombre}</h3>
+                <span style={{ fontSize: '0.7rem', background: 'var(--glass)', padding: '2px 8px', borderRadius: '4px' }}>Nº Empresa: {empresa.id}</span>
               </div>
-              <span style={{ fontSize: '0.7rem', background: 'var(--glass)', padding: '2px 8px', borderRadius: '4px' }}>ID: {u.id}</span>
-            </div>
-            
-            <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', margin: 0 }}>✉️ {u.email}</p>
-            {u.empresaId && <p style={{ color: '#2ecc71', fontSize: '0.8rem', margin: 0 }}>🏢 Asignada Empresa #{u.empresaId}</p>}
-            {!u.empresaId && u.rol !== 'SUPER_ADMIN' && <p style={{ color: '#ffb142', fontSize: '0.8rem', margin: 0 }}>⚠️ Sin empresa asignada</p>}
-            
-            <div style={{ marginTop: 'auto', paddingTop: '1rem' }}>
-              {u.rol !== 'SUPER_ADMIN' && (
+              <p style={{ color: 'var(--text-muted)', marginTop: '0.5rem' }}>📍 {empresa.direccion || 'Sin dirección'}</p>
+              {empresa.dias && <p style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>📅 {empresa.dias}</p>}
+              {empresa.horarios && <p style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>🕒 {empresa.horarios}</p>}
+              <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1.5rem' }}>
                 <button
-                  onClick={() => handleEliminarUsuario(u.id)}
-                  style={{ width: '100%', padding: '0.6rem', background: 'rgba(255, 77, 77, 0.1)', border: '1px solid rgba(255, 77, 77, 0.3)', borderRadius: '8px', color: '#ff4d4d', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}
+                  onClick={() => { setEmpresaSeleccionada(empresa); setMostrarModalAsignar(true); }}
+                  style={{ flex: 1, padding: '0.6rem', background: 'var(--primary)', border: 'none', borderRadius: '8px', color: 'black', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}
                 >
-                  <Trash2 size={16} /> Eliminar Usuario
+                  <Users size={16} /> Asignar Dueño
                 </button>
-              )}
+                <button
+                  onClick={() => handleEliminarEmpresa(empresa.id)}
+                  style={{ padding: '0.6rem', background: 'rgba(255, 77, 77, 0.1)', border: '1px solid rgba(255, 77, 77, 0.3)', borderRadius: '8px', color: '#ff4d4d', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                  title="Eliminar Sucursal"
+                >
+                  <Trash2 size={16} />
+                </button>
+              </div>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
+
+      {tabActiva === 'usuarios' && (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '2rem' }}>
+          {todosUsuarios.map(u => (
+            <div key={u.id} className="glass-card" style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                <div>
+                  <h3 style={{ color: 'white', margin: 0 }}>{u.nombre} {u.apellido}</h3>
+                  <span style={{ fontSize: '0.8rem', color: 'var(--primary)' }}>{u.rol === 'SUPER_ADMIN' ? 'Administrador Global' : 'Dueño de Empresa'}</span>
+                </div>
+                <span style={{ fontSize: '0.7rem', background: 'var(--glass)', padding: '2px 8px', borderRadius: '4px' }}>ID: {u.id}</span>
+              </div>
+              
+              <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', margin: 0 }}>✉️ {u.email}</p>
+              {u.empresaId && <p style={{ color: '#2ecc71', fontSize: '0.8rem', margin: 0 }}>🏢 Asignada Empresa #{u.empresaId}</p>}
+              {!u.empresaId && u.rol !== 'SUPER_ADMIN' && <p style={{ color: '#ffb142', fontSize: '0.8rem', margin: 0 }}>⚠️ Sin empresa asignada</p>}
+              
+              <div style={{ marginTop: 'auto', paddingTop: '1rem' }}>
+                {u.rol !== 'SUPER_ADMIN' && (
+                  <button
+                    onClick={() => handleEliminarUsuario(u.id)}
+                    style={{ width: '100%', padding: '0.6rem', background: 'rgba(255, 77, 77, 0.1)', border: '1px solid rgba(255, 77, 77, 0.3)', borderRadius: '8px', color: '#ff4d4d', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}
+                  >
+                    <Trash2 size={16} /> Eliminar Usuario
+                  </button>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* Modales */}
       {mostrarModalEmpresa && (
